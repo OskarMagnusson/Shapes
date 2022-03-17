@@ -110,3 +110,30 @@ public class ShapeTool : EditorTool
     }
 
 }
+
+public class OskarAbout : EditorWindow
+{
+    string myString = "Hello World";
+    bool groupEnabled;
+    bool myBool = true;
+    float myFloat = 1.23f;
+
+    // Add menu named "My Window" to the Window menu
+    [MenuItem("About/Shape Tool")]
+    static void Init()
+    {
+        // Get existing open window or if none, make a new one:
+        OskarAbout window = EditorWindow.GetWindow<OskarAbout>();
+        window.Show();
+    }
+
+    void OnGUI()
+    {
+        GUILayout.Label("How to use", EditorStyles.boldLabel);
+        GUILayout.Label("Click anywhere in the scene to add a point.\n" +
+            "When three points have been added a parallelogram and a circle will appear.\n" +
+            "Click on any of the points to move them.\n" +
+            "Press R to reset all points.", EditorStyles.helpBox);
+        GUILayout.Label("Created by Oskar Magnusson", EditorStyles.wordWrappedMiniLabel);
+    }
+}
