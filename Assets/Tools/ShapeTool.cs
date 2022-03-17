@@ -4,31 +4,49 @@ using UnityEngine;
 using UnityEditor.EditorTools;
 using UnityEditor;
 
-struct Point
-{
-    public Vector2 position;
-    public bool highlighted;
-}
-
 [EditorTool("Shape Tool")]
 public class ShapeTool : EditorTool
 {
-    List<Point> points = new List<Point>();
+    List<Vector2> points = new List<Vector2>();
+    int highlighted = -1;
+    const float pointSize = 0.5f;
     public override void OnToolGUI(EditorWindow window)
     {
         base.OnToolGUI(window);
         Event e = Event.current;
-        if (e.type == EventType.MouseDown && points.Count < 3)
-        {
-            Point newPoint = new Point();
-            newPoint.position = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition).origin; ;
-            points.Add(newPoint);
-            Debug.Log(newPoint.position);
+        Vector2 mousePos = HandleUtility.GUIPointToWorldRay(e.mousePosition).origin;
 
-            if (points.Count >= 3)
+        if (highlighted >= 0)
+        {
+            EditorGUI.BeginChangeCheck();
+            Vector3 newPosition = Handles.PositionHandle(points[highlighted], Quaternion.identity);
+        
+            if (EditorGUI.EndChangeCheck())
             {
-                CalculateFourthPoint();
+                points[highlighted] = newPosition;
             }
+        }
+
+        if (e.type == EventType.MouseDown)
+        {
+            bool isHighlighted = false;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if ((points[i] - mousePos).magnitude < pointSize)
+                {
+                    highlighted = i;
+                    isHighlighted = true;
+                    break;
+                }
+            }
+
+            if(!isHighlighted)
+                highlighted = -1;
+
+            if (points.Count < 3 && highlighted < 0)
+            {
+                AddNewPoint(mousePos);
+            }               
             e.Use();
         }
 
@@ -37,6 +55,7 @@ public class ShapeTool : EditorTool
             if(e.keyCode == KeyCode.R)
             {
                 points.Clear();
+                highlighted = -1;
             }
             e.Use();
         }
@@ -44,27 +63,31 @@ public class ShapeTool : EditorTool
         Draw();
     }
 
-    void CalculateFourthPoint()
+    void AddNewPoint(Vector2 newPosition)
     {
-        Point point = new Point();
-        point.position = (points[2].position + points[0].position) - points[1].position;
-        points.Add(point);
+        points.Add(newPosition);
+        Debug.Log(newPosition);
+
+        if (points.Count >= 3)
+        {            
+            Vector2 position = (points[2] + points[0]) - points[1];
+            points.Add(position);
+        }
     }
 
     void Draw()
     {
-        const float pointSize = 0.5f;
-        foreach(Point point in points)
+        foreach(Vector2 point in points)
         {
-            Vector2 line1 = point.position;
+            Vector2 line1 = point;
             line1.x -= pointSize;
-            Vector2 line2 = point.position;
+            Vector2 line2 = point;
             line2.x += pointSize;
             Handles.color = Color.white;
             Handles.DrawLine(line1, line2);
-            line1 = point.position;
+            line1 = point;
             line1.y -= pointSize;
-            line2 = point.position;
+            line2 = point;
             line2.y += pointSize;
             Handles.DrawLine(line1, line2);
         }
@@ -74,13 +97,13 @@ public class ShapeTool : EditorTool
             for(int i = 0; i < 4; i++)
             {
                 int j = (i + 1) % 4;
-                Handles.DrawLine(points[i].position, points[j].position);
+                Handles.DrawLine(points[i], points[j]);
             }
 
             Handles.color = Color.yellow;
 
-            Vector2 center = (points[0].position + points[2].position) / 2.0f;
-            float size = (points[1].position - points[0].position).magnitude * (points[3].position - points[2].position).magnitude;
+            Vector2 center = (points[0] + points[2]) / 2.0f;
+            float size = (points[1] - points[0]).magnitude * (points[3] - points[2]).magnitude;
             float radius = Mathf.Sqrt(size/Mathf.PI);
             Handles.DrawWireDisc(center, Vector3.forward, radius);
         }
