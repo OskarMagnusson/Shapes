@@ -75,7 +75,14 @@ public class ShapeTool : EditorTool
             {
                 int j = (i + 1) % 4;
                 Handles.DrawLine(points[i].position, points[j].position);
-            }          
+            }
+
+            Handles.color = Color.yellow;
+
+            Vector2 center = (points[0].position + points[2].position) / 2.0f;
+            float size = (points[1].position - points[0].position).magnitude * (points[3].position - points[2].position).magnitude;
+            float radius = Mathf.Sqrt(size/Mathf.PI);
+            Handles.DrawWireDisc(center, Vector3.forward, radius);
         }
     }
 
