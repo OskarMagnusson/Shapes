@@ -24,6 +24,7 @@ public class ShapeTool : EditorTool
             if (EditorGUI.EndChangeCheck())
             {
                 points[highlighted] = newPosition;
+                PrintInfo(newPosition);
             }
         }
 
@@ -66,31 +67,34 @@ public class ShapeTool : EditorTool
     void AddNewPoint(Vector2 newPosition)
     {
         points.Add(newPosition);
-        Debug.Log(newPosition);
+        PrintInfo(newPosition);
 
         if (points.Count >= 3)
         {            
             Vector2 position = (points[2] + points[0]) - points[1];
             points.Add(position);
+            PrintInfo(position);
+        }
+    }
+
+    void PrintInfo(Vector2 position)
+    {
+        Debug.Log("Position: " + position);
+        if (points.Count == 4)
+        {
+            float size = (points[1] - points[0]).magnitude * (points[3] - points[2]).magnitude;
+            Debug.Log("Size of parallelogram and circle: " + size);
         }
     }
 
     void Draw()
     {
+        Handles.color = Color.white;
         foreach(Vector2 point in points)
         {
-            Vector2 line1 = point;
-            line1.x -= pointSize;
-            Vector2 line2 = point;
-            line2.x += pointSize;
-            Handles.color = Color.white;
-            Handles.DrawLine(line1, line2);
-            line1 = point;
-            line1.y -= pointSize;
-            line2 = point;
-            line2.y += pointSize;
-            Handles.DrawLine(line1, line2);
+            Handles.DrawWireDisc(point, Vector3.forward, pointSize);
         }
+
         if(points.Count == 4)
         {
             Handles.color = Color.blue;
